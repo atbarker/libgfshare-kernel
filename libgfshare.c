@@ -27,7 +27,8 @@
 #include "libgfshare.h"
 #include "libgfshare_tables.h"
 #include <linux/slab.h>
-#include "dm_mks_utilities.h"
+#include <linux/random.h>
+//#include "dm_mks_utilities.h"
 //#include <errno.h>
 //#include <stdlib.h>
 #include <linux/string.h>
@@ -46,17 +47,19 @@ struct _gfshare_ctx {
 };
 
 
-//TODO: fix random
 void
 gfshare_fill_rand_using_random(unsigned char *buffer,
         unsigned int count)
 {
-  /*unsigned int i;
-  for( i = 0; i < count; ++i )
-    buffer[i] = (random() & 0xff00) >> 8;*/ /* apparently the bottom 8 aren't
+  unsigned int i;
+  int32_t rand;
+  for( i = 0; i < count; ++i ){
+    get_random_bytes(&rand, sizeof(rand));
+    buffer[i] = (rand & 0xff00) >> 8; /* apparently the bottom 8 aren't
                                            * very random but the middles ones
-                                           * are
+                                          * are
                                            */
+  }
 }
 
 
@@ -102,8 +105,11 @@ gfshare_generate_sharenrs( unsigned char *sharenrs,
                            unsigned int sharecount )
 {
   int i, j;
+  int32_t rand;
+  uint8_t proposed;
   for (i = 0; i < sharecount; ++i) {
-    unsigned char proposed = (random() & 0xff00) >> 8;
+    get_random_bytes(&rand, sizeof(rand));
+    proposed = (rand & 0xff00) >> 8;
     if (proposed == 0) proposed = 1;
     SHARENR_TRY_AGAIN:
     for (j = 0; j < i; ++j) {

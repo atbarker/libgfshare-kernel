@@ -1,7 +1,7 @@
 obj-m += lkm_template.o
 lkm_template-objs := libgfshare.o
 
-all:
+all: maketable
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 maketable: maketable_build
@@ -13,3 +13,4 @@ maketable_build:
 
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	rm libgfshare_tables.h

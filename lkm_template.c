@@ -2,13 +2,12 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/rslib.h>
+#include <linux/slab.h>
 #include <linux/random.h>
 #include "libgfshare.h"
 
 MODULE_LICENSE("RMS");
 MODULE_AUTHOR("AUSTEN BARKER");
-MODULE_DESCRIPTION("TEMPLATE");
-MODULE_VERSION("0.01");
 
 static int __init km_template_init(void){
     uint8_t random[512];

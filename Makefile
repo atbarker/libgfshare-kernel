@@ -1,5 +1,5 @@
-obj-m += lkm_template.o
-lkm_template-objs := libgfshare.o
+gfsharetest-objs := libgfshare.o lkm_template.o
+obj-m += gfsharetest.o
 
 all: maketable
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules

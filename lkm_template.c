@@ -10,8 +10,10 @@ MODULE_LICENSE("RMS");
 MODULE_AUTHOR("AUSTEN BARKER");
 
 static int __init km_template_init(void){
-    uint8_t random[512];
-//    uint8_t output[512];
+    uint8_t random[4096];
+    uint8_t output[4096];
+    uint8_t* share1, share2, share3;
+    uint8_t* sharenrs(
     printk(KERN_INFO "THIS IS A KERNEL MODULE\n");
     get_random_bytes(&random, 512);
     

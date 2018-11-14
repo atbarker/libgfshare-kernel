@@ -64,9 +64,13 @@ int main(void){
 	hexDump("data", data, 255);
 	encode_rs(data, &data[192]);
 	hexDump("Encoded data", data, 255);
-	memset(data, 0, 10);
+	memset(data, 0, 63);
 	hexDump("erased data", data, 255);
-	int errs = eras_dec_rs(data, NULL, 0);
+	int *erased_pos = malloc(63);
+	for(int i = 0; i < 63; i++){
+		erased_pos[i] = i;
+	}
+	int errs = eras_dec_rs(data, erased_pos, 63);
 	printf("Errors: %d\n", errs);
 	hexDump("decoded data", data, 255);
 	return 0;

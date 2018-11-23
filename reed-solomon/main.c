@@ -4,6 +4,19 @@
 #include "rs.h"
 #include <sys/random.h>
 
+struct config{
+	int num_data;
+	int num_entropy;
+	int num_carrier;
+	int polynomial_deg;
+	int k;
+	int n;
+	int total_blocks;
+	int block_portion;
+	int padding;
+	int block_size;
+};
+
 void hexDump (char *desc, void *addr, int len) {
     int i;
     unsigned char buff[17];
@@ -56,21 +69,42 @@ void hexDump (char *desc, void *addr, int len) {
     printf ("  %s\n", buff);
 }
 
+int initialize(struct config* configuration, int num_data, int num_entropy, int num_carrier){
+	configuration->total_blocks = num_data + num_entropy + num_carrier;
+	configuration->num_data = num_data;
+	configuration->num_entropy = num_entropy;
+	configuration->num_carrier = num_carrier;
+	configuration->padding = 255 % configuration->total_blocks;
+	configuration->block_portion = 255 / configuration->total_blocks;
+	configuration->n = configuration->total_blocks * configuration->block_portion;
+	configuration->k = configuration->block_portion * (num_data + num_entropy);
+	configuration->block_size = 4096;
+	return 0;
+}
+
+int encode(struct config* info, unsigned char** data, unsigned char** entropy, unsigned char** carrier){
+	return 0;
+}
+
+int decode(struct config* info, int erasures, int* err_loc, unsigned char** data, unsigned char** entropy, unsigned char** carrier){
+	return 0;
+}
+
 int main(void){
 	//initialize the variables
-	init_rs();
+	init_rs(223);
 	unsigned char *data = malloc(255);
-	getrandom(data, 192, 0);
+	getrandom(data, 128, 0);
 	hexDump("data", data, 255);
-	encode_rs(data, &data[192]);
+	encode_rs(data, 223, &data[223], 32);
 	hexDump("Encoded data", data, 255);
-	memset(data, 0, 63);
+	memset(data, 0, 6);
 	hexDump("erased data", data, 255);
-	int *erased_pos = malloc(63);
-	for(int i = 0; i < 63; i++){
+	int *erased_pos = malloc(6);
+	for(int i = 0; i < 6; i++){
 		erased_pos[i] = i;
 	}
-	int errs = eras_dec_rs(data, erased_pos, 63);
+	int errs = eras_dec_rs(data, erased_pos, 223, 6);
 	printf("Errors: %d\n", errs);
 	hexDump("decoded data", data, 255);
 	return 0;

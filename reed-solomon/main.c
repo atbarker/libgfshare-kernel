@@ -12,6 +12,7 @@ struct config{
 	int k;
 	int n;
 	int total_blocks;
+	int encode_blocks;
 	int block_portion;
 	int padding;
 	int block_size;
@@ -79,14 +80,41 @@ int initialize(struct config* configuration, int num_data, int num_entropy, int 
 	configuration->n = configuration->total_blocks * configuration->block_portion;
 	configuration->k = configuration->block_portion * (num_data + num_entropy);
 	configuration->block_size = 4096;
+	configuration->encode_blocks = configuration->block_size / configuration->block_portion;
+	if ((configuration->block_size % configuration->block_portion) != 0){
+		configuration->encode_blocks++;
+	}
+	init_rs(configuration->k);
 	return 0;
 }
 
-int encode(struct config* info, unsigned char** data, unsigned char** entropy, unsigned char** carrier){
+int encode(struct config* info, unsigned char* data, unsigned char* entropy, unsigned char* carrier){
+	int i, j;
+	int count = 0;
+	int data_count = 0;
+	int entropy_count = 0;
+	int carrier_count = 0;
+	unsigned char* encode_buffer = malloc(255);
+	for(i = 0; i < info->encode_blocks; i++){
+		for(j = 0; j < info->num_data; j++){
+			memcpy(&encode_buffer[count], &data[data_count], info->block_portion);
+			count += info->block_portion;	
+			data_count += info->block_portion;
+		}
+		for(j = 0; j < info->num_entropy; j++){
+			memcpy(&encode_buffer[count], &entropy[entropy_count], info->block_portion);
+			count += info->block_portion;
+			entropy_count += info->block_portion;
+		}
+		encode_rs(encode_buffer, info->k, &encode_buffer[info->k], 255-info->k);
+		memcpy(&carrier[carrier_count], &encode_buffer[info->k], info->num_carrier * info->block_portion);
+	}
+	free(encode_buffer);
 	return 0;
 }
 
 int decode(struct config* info, int erasures, int* err_loc, unsigned char** data, unsigned char** entropy, unsigned char** carrier){
+
 	return 0;
 }
 

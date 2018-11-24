@@ -1,5 +1,6 @@
 /* Global definitions for Reed-Solomon encoder/decoder
  * Phil Karn KA9Q, September 1996
+ * Modified by Austen Barker 2018
  *
  * The parameters MM and KK specify the Reed-Solomon code parameters.
  *
@@ -27,7 +28,12 @@ typedef unsigned int dtype;
 #endif
 
 /* Initialization function */
+//TODO eliminate global variables and malloc here
 void init_rs(int kk);
+
+/* Cleanup function */
+//TODO free a context structure here
+void cleanup_rs();
 
 /* These two functions *must* be called in this order (e.g.,
  * by init_rs()) before any encoding/decoding

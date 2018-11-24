@@ -1,6 +1,7 @@
 /*
  * Reed-Solomon coding and decoding
  * Phil Karn (karn at ka9q.ampr.org) September 1996
+ * Modified by Austen Barker (atbarker at ucsc.edu) 2018
  * 
  * This file is derived from the program "new_rs_erasures.c" by Robert
  * Morelos-Zaragoza (robert at spectra.eng.hawaii.edu) and Hari Thirumoorthy
@@ -162,6 +163,10 @@ void init_rs(int kk)
 	Gg = malloc(sizeof(gf) * (NN-kk+1));
 	generate_gf();
 	gen_poly(kk);
+}
+
+void cleanup_rs(){
+	free(Gg);
 }
 
 /* generate GF(2**m) from the irreducible polynomial p(X) in p[0]..p[m]

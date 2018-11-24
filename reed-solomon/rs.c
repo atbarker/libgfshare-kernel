@@ -23,6 +23,7 @@
  */
 #include <stdio.h>
 #include "rs.h"
+#include <stdlib.h>
 
 #if (KK >= NN)
 #error "KK must be less than 2**MM - 1"
@@ -121,7 +122,8 @@ gf Index_of[NN + 1];
  * Degree of g(x) = 2*TT
  * has roots @**B0, @**(B0+1), ... ,@^(B0+2*TT-1)
  */
-gf Gg[NN - KK + 1];
+//gf Gg[NN - KK + 1];
+gf* Gg;
 
 /* Compute x % NN, where NN is 2**MM - 1,
  * without a slow divide
@@ -157,6 +159,7 @@ modnn(int x)
 
 void init_rs(int kk)
 {
+	Gg = malloc(sizeof(gf) * (NN-kk+1));
 	generate_gf();
 	gen_poly(kk);
 }

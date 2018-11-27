@@ -113,8 +113,30 @@ int encode(struct config* info, unsigned char* data, unsigned char* entropy, uns
 	return 0;
 }
 
-int decode(struct config* info, int erasures, int* err_loc, unsigned char** data, unsigned char** entropy, unsigned char** carrier){
 
+//if a block is all zeros then it is considered erased
+int decode(struct config* info, int erasures, int* err_loc, unsigned char* data, unsigned char* entropy, unsigned char* carrier){
+	int i, j;
+	int count = 0;
+	int data_count = 0;
+	int entropy_count = 0;
+	int carrier_count = 0;
+	unsigned char* decode_buffer = malloc(255);
+	for(i = 0; i < info->encode_blocks; i++){
+		for(j = 0; j < info->num_data; j++){
+
+		}
+		//TODO only read in the entropy if needed and supplied
+		//TODO is it faster to read the entropy or reconstruct more of the data?
+		for(j = 0; j < info->num_entropy; j++){
+
+		}
+		//new stuff
+		for(j = 0; j< info->num_data; j++){
+
+		}
+	}
+	free(encode_buffer);
 	return 0;
 }
 

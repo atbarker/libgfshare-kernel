@@ -13,7 +13,7 @@ maketable: maketable_build
 	rm gfshare_maketable
 
 maketable_build:
-	gcc -std=c99 -Wall gfshare_maketable.c -o gfshare_maketable
+	gcc -std=c90 -Wall gfshare_maketable.c -o gfshare_maketable
 
 test:
 	sudo insmod gfsharetest.o

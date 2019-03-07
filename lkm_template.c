@@ -6,17 +6,57 @@
 #include <linux/random.h>
 #include "libgfshare.h"
 
-MODULE_LICENSE("RMS");
+MODULE_LICENSE("MIT");
 MODULE_AUTHOR("AUSTEN BARKER");
 
 static int __init km_template_init(void){
-    uint8_t random[4096];
-    uint8_t output[4096];
-    uint8_t* share1, share2, share3;
-    uint8_t* sharenrs(
-    printk(KERN_INFO "THIS IS A KERNEL MODULE\n");
-    get_random_bytes(&random, 512);
+    uint8_t* secret = kmalloc(4096, GFP_KERNEL);
+    uint8_t* recombine = kmalloc(4096, GFP_KERNEL);
+    uint8_t* shard1 = kmalloc(4096, GFP_KERNEL);
+    uint8_t* shard2 = kmalloc(4096, GFP_KERNEL);
+    uint8_t* shard3 = kmalloc(4096, GFP_KERNEL);
+    uint8_t* sharenrs = "012";
+    int i;
+    gfshare_ctx *G;
+    gfshare_ctx *G_dec;
+
+    printk(KERN_INFO "Inserting kernel module\n");
+
+    //populate everything with random bytes
+    get_random_bytes(&secret, 4096);
+
+    //split our secret
+    G = gfshare_ctx_init_enc(sharenrs, 3, 2, 4096); 
+    gfshare_ctx_enc_setsecret(G, secret);
+    gfshare_ctx_enc_getshare(G, 0, shard1);
+    gfshare_ctx_enc_getshare(G, 1, shard2);
+    gfshare_ctx_enc_getshare(G, 2, shard3);
+
+    //recombine the secret
+    G_dec = gfshare_ctx_init_dec(sharenrs, 3, 4096);
+    gfshare_ctx_dec_giveshare(G, 0, shard1);
+    gfshare_ctx_dec_giveshare(G, 1, shard2);
+    gfshare_ctx_dec_giveshare(G, 2, shard3);
+    gfshare_ctx_dec_extract(G, recombine);
     
+    //verify the recombination succeeded
+    for(i = 0; i < 4096; i++){
+        if(secret[i] != recombine[i]){
+             printk(KERN_INFO "Recombine failed at character %d\n", i);
+	     goto exit;
+	}	
+    }
+
+    printk(KERN_INFO "Recombine with all shares succeeded\n");
+    
+exit:
+    gfshare_ctx_free(G);
+    gfshare_ctx_free(G_dec); 
+    kfree(secret);
+    kfree(recombine);
+    kfree(shard1);
+    kfree(shard2);
+    kfree(shard3);
     return 0;
 }
 

@@ -10,53 +10,56 @@ MODULE_LICENSE("MIT");
 MODULE_AUTHOR("AUSTEN BARKER");
 
 static int __init km_template_init(void){
-    uint8_t* secret = kmalloc(4096, GFP_KERNEL);
-    uint8_t* recombine = kmalloc(4096, GFP_KERNEL);
-    uint8_t* shard1 = kmalloc(4096, GFP_KERNEL);
-    uint8_t* shard2 = kmalloc(4096, GFP_KERNEL);
-    uint8_t* shard3 = kmalloc(4096, GFP_KERNEL);
+    uint8_t* secret = kmalloc(512, GFP_KERNEL);
+    uint8_t* recombine = kmalloc(512, GFP_KERNEL);
+    uint8_t* shard1 = kmalloc(512, GFP_KERNEL);
+    uint8_t* shard2 = kmalloc(512, GFP_KERNEL);
+    uint8_t* shard3 = kmalloc(512, GFP_KERNEL);
     uint8_t* sharenrs = "012";
     int i;
     gfshare_ctx *G;
     gfshare_ctx *G_dec;
 
     printk(KERN_INFO "Inserting kernel module\n");
-
+    
     //populate everything with random bytes
-    get_random_bytes(&secret, 4096);
-
+    get_random_bytes(secret, 512);
+    
+    for(i = 0; i < 3; i++){
+        printk(KERN_INFO "%d\n", sharenrs[i]);
+    }
     //split our secret
-    G = gfshare_ctx_init_enc(sharenrs, 3, 2, 4096); 
+    G = gfshare_ctx_init_enc(sharenrs, 3, 2, 512); 
     gfshare_ctx_enc_setsecret(G, secret);
     gfshare_ctx_enc_getshare(G, 0, shard1);
     gfshare_ctx_enc_getshare(G, 1, shard2);
     gfshare_ctx_enc_getshare(G, 2, shard3);
-
+    
     //recombine the secret
-    G_dec = gfshare_ctx_init_dec(sharenrs, 3, 4096);
+    G_dec = gfshare_ctx_init_dec(sharenrs, 3, 512);
     gfshare_ctx_dec_giveshare(G, 0, shard1);
     gfshare_ctx_dec_giveshare(G, 1, shard2);
     gfshare_ctx_dec_giveshare(G, 2, shard3);
     gfshare_ctx_dec_extract(G, recombine);
     
     //verify the recombination succeeded
-    for(i = 0; i < 4096; i++){
+    /*for(i = 0; i < 512; i++){
         if(secret[i] != recombine[i]){
              printk(KERN_INFO "Recombine failed at character %d\n", i);
 	     goto exit;
 	}	
-    }
+    }*/
 
     printk(KERN_INFO "Recombine with all shares succeeded\n");
     
 exit:
-    gfshare_ctx_free(G);
-    gfshare_ctx_free(G_dec); 
-    kfree(secret);
-    kfree(recombine);
-    kfree(shard1);
-    kfree(shard2);
-    kfree(shard3);
+    //gfshare_ctx_free(G);
+    //gfshare_ctx_free(G_dec); 
+    //kfree(secret);
+    //kfree(recombine);
+    //kfree(shard1);
+    //kfree(shard2);
+    //kfree(shard3);
     return 0;
 }
 

@@ -146,7 +146,7 @@ _gfshare_ctx_init_core( unsigned char *sharenrs,
     //errno = saved_errno;
     return NULL;
   }
-  
+    
   memcpy( ctx->sharenrs, sharenrs, sharecount );
   ctx->buffersize = threshold * size;
   ctx->buffer = kmalloc(ctx->buffersize, GFP_KERNEL);

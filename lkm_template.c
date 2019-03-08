@@ -25,7 +25,7 @@ static int __init km_template_init(void){
     //populate everything with random bytes
     get_random_bytes(secret, 512);
     
-    //split our secret
+    printk(KERN_INFO "Splitting randomly generated secret\n");
     G = gfshare_ctx_init_enc(sharenrs, 3, 2, 512); 
     gfshare_ctx_enc_setsecret(G, secret);
     gfshare_ctx_enc_getshare(G, 0, shard1);
@@ -50,13 +50,13 @@ static int __init km_template_init(void){
     printk(KERN_INFO "Recombine with all shares succeeded\n");
     
 exit:
-    //gfshare_ctx_free(G);
-    //gfshare_ctx_free(G_dec); 
-    //kfree(secret);
-    //kfree(recombine);
-    //kfree(shard1);
-    //kfree(shard2);
-    //kfree(shard3);
+    gfshare_ctx_free(G);
+    gfshare_ctx_free(G_dec); 
+    kfree(secret);
+    kfree(recombine);
+    kfree(shard1);
+    kfree(shard2);
+    kfree(shard3);
     return 0;
 }
 

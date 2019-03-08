@@ -25,9 +25,6 @@ static int __init km_template_init(void){
     //populate everything with random bytes
     get_random_bytes(secret, 512);
     
-    for(i = 0; i < 3; i++){
-        printk(KERN_INFO "%d\n", sharenrs[i]);
-    }
     //split our secret
     G = gfshare_ctx_init_enc(sharenrs, 3, 2, 512); 
     gfshare_ctx_enc_setsecret(G, secret);
@@ -37,18 +34,18 @@ static int __init km_template_init(void){
     
     //recombine the secret
     G_dec = gfshare_ctx_init_dec(sharenrs, 3, 512);
-    gfshare_ctx_dec_giveshare(G, 0, shard1);
-    gfshare_ctx_dec_giveshare(G, 1, shard2);
-    gfshare_ctx_dec_giveshare(G, 2, shard3);
-    gfshare_ctx_dec_extract(G, recombine);
+    gfshare_ctx_dec_giveshare(G_dec, 0, shard1);
+    gfshare_ctx_dec_giveshare(G_dec, 1, shard2);
+    gfshare_ctx_dec_giveshare(G_dec, 2, shard3);
+    gfshare_ctx_dec_extract(G_dec, recombine);
     
     //verify the recombination succeeded
-    /*for(i = 0; i < 512; i++){
+    for(i = 0; i < 512; i++){
         if(secret[i] != recombine[i]){
              printk(KERN_INFO "Recombine failed at character %d\n", i);
 	     goto exit;
 	}	
-    }*/
+    }
 
     printk(KERN_INFO "Recombine with all shares succeeded\n");
     

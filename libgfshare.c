@@ -257,7 +257,7 @@ gfshare_ctx_enc_getshare( gfshare_ctx* ctx,
       for( coefficient = 1; coefficient < ctx->threshold; ++coefficient ) {
           share_ptr = shares[i];
           for( pos = 0; pos < ctx->size; ++pos) {
-              unsigned char share_byte = *share_ptr--;
+              unsigned char share_byte = *share_ptr;
               if( share_byte ){
                   share_byte = exps[ilog + logs[share_byte]];
               }

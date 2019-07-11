@@ -72,8 +72,9 @@ void gfshare_ctx_enc_setsecret(gfshare_ctx* /* ctx */,
  * 'sharenr' is the index into the 'sharenrs' array of the share you want.
  */
 void gfshare_ctx_enc_getshare(gfshare_ctx* /* ctx */,
+		              unsigned char* /*secret*/,
                               unsigned char /* sharenr */,
-                              unsigned char* /* share */);
+                              unsigned char** /* share */);
 
 
 //unsigned int gfshare_ctx_enc_stream(gfshare_ctx* /* ctx */,

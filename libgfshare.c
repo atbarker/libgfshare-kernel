@@ -32,6 +32,7 @@
 //#include <errno.h>
 //#include <stdlib.h>
 #include <linux/string.h>
+#include <linux/timekeeping.h>
 //#include <stdio.h>
 
 //#define XMALLOC malloc
@@ -229,24 +230,41 @@ gfshare_ctx_enc_setsecret( gfshare_ctx* ctx,
  */
 void 
 gfshare_ctx_enc_getshare( gfshare_ctx* ctx,
+		          unsigned char* secret,
                           unsigned char sharenr,
-                          unsigned char* share)
+                          unsigned char** shares)
 {
   unsigned int pos, coefficient;
-  unsigned int ilog = logs[ctx->sharenrs[sharenr]];
-  unsigned char *coefficient_ptr = ctx->buffer;
+  //unsigned int ilog = logs[ctx->sharenrs[sharenr]];
+  //unsigned char *coefficient_ptr = ctx->buffer;
   unsigned char *share_ptr;
-  memcpy(share, coefficient_ptr++, ctx->size);
-  coefficient_ptr += ctx->size - 1;
-  for( coefficient = 1; coefficient < ctx->threshold; ++coefficient ) {
-    share_ptr = share;
-    for( pos = 0; pos < ctx->size; ++pos ) {
-      unsigned char share_byte = *share_ptr;
-      if( share_byte ){
-        share_byte = exps[ilog + logs[share_byte]];
+  int i;
+  uint64_t time = 0;
+
+  memcpy( ctx->buffer + ((ctx->threshold-1) * ctx->size),
+          secret,
+          ctx->size );
+  gfshare_fill_rand( ctx->buffer, (ctx->threshold-1) * ctx->size );
+  
+  for(i = 0; i < sharenr; i++){
+
+      unsigned int ilog = logs[ctx->sharenrs[i]];
+      unsigned char *coefficient_ptr = ctx->buffer;
+      memcpy(shares[i], coefficient_ptr++, ctx->size);
+      coefficient_ptr += ctx->size - 1;
+
+      time = ktime_get_ns();
+      for( coefficient = 1; coefficient < ctx->threshold; ++coefficient ) {
+          share_ptr = shares[i];
+          for( pos = 0; pos < ctx->size; ++pos) {
+              unsigned char share_byte = *share_ptr--;
+              if( share_byte ){
+                  share_byte = exps[ilog + logs[share_byte]];
+              }
+              *share_ptr++ = share_byte ^ *coefficient_ptr++;
+          }
       }
-      *share_ptr++ = share_byte ^ *coefficient_ptr++;
-    }
+      printk(KERN_INFO "time to generate share: %lld", ktime_get_ns() - time);
   }
 }
 

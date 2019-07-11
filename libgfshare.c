@@ -298,9 +298,8 @@ gfshare_ctx_dec_extract( gfshare_ctx* ctx,
 {
   unsigned int i, j;
   unsigned char *secret_ptr, *share_ptr;
-  
-  for( i = 0; i < ctx->size; ++i )
-    secretbuf[i] = 0;
+ 
+  memset(secretbuf, 0, ctx->size); 
   
   for( i = 0; i < ctx->sharecount; ++i ) {
     /* Compute L(i) as per Lagrange Interpolation */

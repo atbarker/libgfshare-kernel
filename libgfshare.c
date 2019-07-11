@@ -236,47 +236,19 @@ gfshare_ctx_enc_getshare( gfshare_ctx* ctx,
   unsigned int ilog = logs[ctx->sharenrs[sharenr]];
   unsigned char *coefficient_ptr = ctx->buffer;
   unsigned char *share_ptr;
-  for( pos = 0; pos < ctx->size; ++pos )
-    share[pos] = *(coefficient_ptr++);
+  memcpy(share, coefficient_ptr++, ctx->size);
+  coefficient_ptr += ctx->size - 1;
   for( coefficient = 1; coefficient < ctx->threshold; ++coefficient ) {
     share_ptr = share;
     for( pos = 0; pos < ctx->size; ++pos ) {
       unsigned char share_byte = *share_ptr;
-      if( share_byte )
+      if( share_byte ){
         share_byte = exps[ilog + logs[share_byte]];
+      }
       *share_ptr++ = share_byte ^ *coefficient_ptr++;
     }
   }
 }
-
-/* Encrypt from an input file pointer to output file pointers */
-/*unsigned int
-gfshare_ctx_enc_stream( gfshare_ctx* ctx,
-                        FILE *inputfile,
-                        FILE **outputfiles)
-{
-  unsigned char* buffer = malloc( ctx->buffersize );
-  if( buffer == NULL ) {
-    perror( "malloc" );
-    return 1;
-  }
-
-  while( !feof(inputfile) ) {
-    unsigned int bytes_read = fread( buffer, 1, ctx->buffersize, inputfile );
-    if( bytes_read == 0 ) break;
-    gfshare_ctx_enc_setsecret( ctx, buffer );
-    for( int i = 0; i < ctx->sharecount; ++i ) {
-      unsigned int bytes_written;
-      gfshare_ctx_enc_getshare( ctx, i, buffer );
-      bytes_written = fwrite( buffer, 1, bytes_read, outputfiles[i] );
-      if( bytes_read != bytes_written ) {
-        fprintf( stderr, "Mismatch during file write to output stream %i.\n", i);
-        return 1;
-      }
-    }
-  }
-  return 0;
-}*/
 
 /* ----------------------------------------------------[ Recombination ]---- */
 

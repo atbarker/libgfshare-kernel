@@ -16,9 +16,9 @@ static int __init km_template_init(void){
     uint8_t* secret = kmalloc(SECRET_SIZE, GFP_KERNEL);
     uint8_t* recombine = kmalloc(SECRET_SIZE, GFP_KERNEL);
     uint8_t** shards = kmalloc(sizeof(uint8_t*) * 3, GFP_KERNEL);
-    //uint8_t* shard1 = kmalloc(SECRET_SIZE, GFP_KERNEL);
-    //uint8_t* shard2 = kmalloc(SECRET_SIZE, GFP_KERNEL);
-    //uint8_t* shard3 = kmalloc(SECRET_SIZE, GFP_KERNEL);
+    uint8_t* shard1 = kmalloc(SECRET_SIZE, GFP_KERNEL);
+    uint8_t* shard2 = kmalloc(SECRET_SIZE, GFP_KERNEL);
+    uint8_t* shard3 = kmalloc(SECRET_SIZE, GFP_KERNEL);
     uint8_t* sharenrs = "012";
     int i;
     uint64_t time = 0;
@@ -43,6 +43,7 @@ static int __init km_template_init(void){
     //gfshare_ctx_enc_getshare(G, 2, shard3);
     gfshare_ctx_enc_getshare(G, 3, shards);
     printk(KERN_INFO "time to split: %lld", ktime_get_ns() - time);
+    print_hex_dump(KERN_DEBUG, "split1", DUMP_PREFIX_OFFSET, 20, 1, (void*)shards[0], SECRET_SIZE, true);
     
     //recombine the secret
     G_dec = gfshare_ctx_init_dec(sharenrs, 3, 2, SECRET_SIZE);
@@ -68,10 +69,10 @@ exit:
     gfshare_ctx_free(G_dec); 
     kfree(secret);
     kfree(recombine);
-    kfree(shards);
-    //kfree(shard1);
-    //kfree(shard2);
-    //kfree(shard3);
+    //kfree(shards);
+    kfree(shard1);
+    kfree(shard2);
+    kfree(shard3);
     return 0;
 }
 

@@ -221,6 +221,7 @@ gfshare_ctx_enc_setsecret( gfshare_ctx* ctx,
  */
 int
 gfshare_ctx_enc_getshare( const gfshare_ctx* ctx,
+//		          const unsigned char* secret,
                           unsigned char sharenr,
                           unsigned char** share)
 {
@@ -230,11 +231,15 @@ gfshare_ctx_enc_getshare( const gfshare_ctx* ctx,
   //unsigned char *share_ptr;
   int i;
 
+  
+  //memcpy(ctx->buffer + ((ctx->threshold-1) * ctx->maxsize), secret, ctx->size);
+  //gfshare_fill_rand(ctx->buffer, (ctx->threshold-1) * ctx->maxsize);
+
   if (sharenr >= ctx->sharecount) {
     return 1;
   }
 
-  for(i = 0; i < sharenr; i++){
+  for(i = 0; i < ctx->sharecount; i++){
     unsigned int pos, coefficient;
     unsigned int ilog = logs[ctx->sharenrs[i]];
     unsigned char *coefficient_ptr = ctx->buffer;

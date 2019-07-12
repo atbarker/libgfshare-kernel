@@ -52,15 +52,7 @@ void
 gfshare_fill_rand_using_random(unsigned char *buffer,
         unsigned int count)
 {
-  unsigned int i;
-  int32_t rand;
-  for( i = 0; i < count; ++i ){
-    get_random_bytes(&rand, sizeof(rand));
-    buffer[i] = (rand & 0xff00) >> 8; /* apparently the bottom 8 aren't
-                                           * very random but the middles ones
-                                          * are
-                                           */
-  }
+    get_random_bytes(buffer, count);
 }
 
 
@@ -85,7 +77,7 @@ gfshare_fill_rand_using_dev_urandom( unsigned char *buffer,
   //fclose(devrandom);*/
 }
 
-gfshare_rand_func_t gfshare_fill_rand = gfshare_fill_rand_using_dev_urandom;
+gfshare_rand_func_t gfshare_fill_rand = gfshare_fill_rand_using_random;
 /*
 unsigned int
 gfshare_file_getlen( FILE* f )

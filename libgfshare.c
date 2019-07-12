@@ -44,63 +44,11 @@ struct _gfshare_ctx {
   uint32_t buffersize;
 };
 
-//TODO use get_random_int and check how fast it is compared to get_random_bytes
-
-/*#ifdef ARCH_RDRAND_X86
-#else
-#include <random>
-#endif
-
-uint64_t gf_random_u64 (void) {
-
-    uint64_t v;
-
-#ifdef ARCH_RDRAND_X86
-    // int _rdrand_u64_step(unsigned __int64 *);
-    // Bull Mountain, intrinsic to generate rand store in v
-    __asm__ volatile("rdrand %0" : "=r"(v));
-#else
-    // For devices without hardware support for rand gen.
-    std::mt19937 rng;
-    rng.seed (std::random_device () ());
-    std::uniform_int_distribution< uint64_t > uint_dist;
-    v = uint_dist (rng);
-#endif
-    return (v);
-}
-
-// returns random value based on passed in GF's field size [0, 2^n-1]
-// returns a random unsigned interger from 0-255
-uint8_t gf_random_val() {
-    return (gf_8_t) (gf_random_u64 () % GF8_FIELD_SIZE);
-}
-
-void gf_random_fill (void *buf, uint64_t len) {
-    uint64_t *b = (uint64_t *)buf;
-    uint8_t *b8;
-
-    for (uint64_t i = 0; i < len; i += sizeof (uint64_t), b++) {
-        *b = gf_random_u64 ();
-    }
-    for (b8 = (uint8_t *)b; b8 < (uint8_t *)buf + len; b++) {
-        *b8 = gf_random_val< gf_8_t > ();
-    }
-}
-
-
-*/
+//TODO see if there are any faster methods to get good random numbers, RDRAND if x86?
 
 static void _gfshare_fill_rand_using_random_bytes(uint8_t* buffer, size_t count )
 {
     get_random_bytes(buffer, count);
-}
-
-static void _gfshare_fill_rand_using_random_int(uint8_t* buffer, size_t count){
-    int i;
-    uint32_t* buf = (uint32_t*)buffer;
-    for(i = 0; i < count; i += sizeof(uint32_t)){
-        buf[i] = get_random_int();
-    }
 }
 
 gfshare_rand_func_t gfshare_fill_rand = _gfshare_fill_rand_using_random_bytes;

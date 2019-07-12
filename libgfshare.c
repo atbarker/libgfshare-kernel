@@ -35,13 +35,13 @@
 #define XMALLOC malloc
 
 struct _gfshare_ctx {
-  unsigned int sharecount;
-  unsigned int threshold;
-  unsigned int maxsize;
-  unsigned int size;
-  unsigned char* sharenrs;
-  unsigned char* buffer;
-  unsigned int buffersize;
+  uint32_t sharecount;
+  uint32_t threshold;
+  uint32_t maxsize;
+  uint32_t size;
+  uint8_t* sharenrs;
+  uint8_t* buffer;
+  uint32_t buffersize;
 };
 
 //TODO use get_random_int and check how fast it is compared to get_random_bytes
@@ -107,11 +107,10 @@ gfshare_rand_func_t gfshare_fill_rand = _gfshare_fill_rand_using_random_bytes;
 
 /* ------------------------------------------------------[ Preparation ]---- */
 
-static gfshare_ctx *
-_gfshare_ctx_init_core( const unsigned char *sharenrs,
-                        unsigned int sharecount,
-                        unsigned char threshold,
-                        unsigned int maxsize )
+static gfshare_ctx * _gfshare_ctx_init_core(const uint8_t *sharenrs, 
+		                            uint32_t sharecount, 
+					    uint32_t threshold, 
+					    size_t maxsize ) 
 {
   gfshare_ctx *ctx;
 
@@ -148,13 +147,12 @@ _gfshare_ctx_init_core( const unsigned char *sharenrs,
 }
 
 /* Initialise a gfshare context for producing shares */
-gfshare_ctx *
-gfshare_ctx_init_enc( const unsigned char* sharenrs,
-                      unsigned int sharecount,
-                      unsigned char threshold,
-                      unsigned int maxsize )
+gfshare_ctx * gfshare_ctx_init_enc(const uint8_t* sharenrs,
+                                   uint32_t sharecount,
+                                   uint32_t threshold,
+                                   size_t maxsize)
 {
-  unsigned int i;
+  int i;
 
   for (i = 0; i < sharecount; i++) {
     if (sharenrs[i] == 0) {
@@ -169,20 +167,17 @@ gfshare_ctx_init_enc( const unsigned char* sharenrs,
 }
 
 /* Initialise a gfshare context for recombining shares */
-gfshare_ctx*
-gfshare_ctx_init_dec( const unsigned char* sharenrs,
-                      unsigned int sharecount,
-                      unsigned int threshold,
-                      unsigned int maxsize )
+gfshare_ctx* gfshare_ctx_init_dec(const uint8_t* sharenrs,
+                                  uint32_t sharecount,
+                                  uint32_t threshold,
+                                  size_t maxsize)
 {
   return _gfshare_ctx_init_core( sharenrs, sharecount, threshold, maxsize );
 }
 
 /* Set the current processing size */
-int
-gfshare_ctx_setsize( gfshare_ctx* ctx, unsigned int size )
-{
-  if( size < 1 || size >= ctx->maxsize ) {
+int gfshare_ctx_setsize(gfshare_ctx* ctx, size_t size) {
+  if(size < 1 || size >= ctx->maxsize) {
     return 1;
   }
   ctx->size = size;
@@ -190,41 +185,32 @@ gfshare_ctx_setsize( gfshare_ctx* ctx, unsigned int size )
 }
 
 /* Free a share context's memory. */
-void 
-gfshare_ctx_free( gfshare_ctx* ctx )
-{
+void gfshare_ctx_free(gfshare_ctx* ctx) {
   gfshare_fill_rand( ctx->buffer, ctx->sharecount * ctx->maxsize );
   gfshare_fill_rand( ctx->sharenrs, ctx->sharecount );
   kfree( ctx->sharenrs );
   kfree( ctx->buffer );
-  gfshare_fill_rand( (unsigned char*)ctx, sizeof(struct _gfshare_ctx) );
+  gfshare_fill_rand( (uint8_t*)ctx, sizeof(struct _gfshare_ctx) );
   kfree( ctx );
 }
 
 /* --------------------------------------------------------[ Splitting ]---- */
 /* Provide a secret to the encoder. (this re-scrambles the coefficients) */
-void 
-gfshare_ctx_enc_setsecret( gfshare_ctx* ctx,
-                           const unsigned char* secret)
-{
-  memcpy( ctx->buffer + ((ctx->threshold-1) * ctx->maxsize),
-          secret,
-          ctx->size );
-  gfshare_fill_rand( ctx->buffer, (ctx->threshold-1) * ctx->maxsize );
+void gfshare_ctx_enc_setsecret( gfshare_ctx* ctx, const uint8_t* secret) {
+  memcpy(ctx->buffer + ((ctx->threshold-1) * ctx->maxsize), secret, ctx->size);
+  gfshare_fill_rand(ctx->buffer, (ctx->threshold-1) * ctx->maxsize);
 }
 
 /* Extract a share from the context. 
  * 'share' must be preallocated and at least 'size' bytes long.
  * 'sharenr' is the index into the 'sharenrs' array of the share you want.
  */
-int
-gfshare_ctx_enc_getshares( const gfshare_ctx* ctx,
-		          const unsigned char* secret,
-                          unsigned char sharenr,
-                          unsigned char** share)
+int gfshare_ctx_enc_getshares(const gfshare_ctx* ctx,
+		              const uint8_t* secret,
+                              uint8_t** shares)
 {
-  unsigned int pos, coefficient;
-  unsigned char *share_ptr;
+  uint32_t pos, coefficient;
+  uint8_t *share_ptr;
   uint64_t time;
   int i;
 
@@ -233,20 +219,20 @@ gfshare_ctx_enc_getshares( const gfshare_ctx* ctx,
   gfshare_fill_rand(ctx->buffer, (ctx->threshold-1) * ctx->maxsize);
   printk(KERN_INFO "time to generate random bytes: %lld", ktime_get_ns() - time);
 
-  for(i = 0; i < sharenr; i++){
-    unsigned int ilog = logs[ctx->sharenrs[i]];
-    unsigned char *coefficient_ptr = ctx->buffer;
+  for(i = 0; i < ctx->sharecount; i++) {
+    uint32_t ilog = logs[ctx->sharenrs[i]];
+    uint8_t *coefficient_ptr = ctx->buffer;
 
     time = ktime_get_ns();
-    memcpy(share[i], coefficient_ptr++, ctx->size);
+    memcpy(shares[i], coefficient_ptr++, ctx->size);
     coefficient_ptr += ctx->size - 1;
 
-    for( coefficient = 1; coefficient < ctx->threshold; ++coefficient ) {
-      share_ptr = share[i];
+    for(coefficient = 1; coefficient < ctx->threshold; ++coefficient) {
+      share_ptr = shares[i];
       coefficient_ptr = ctx->buffer + coefficient * ctx->maxsize;
-      for( pos = 0; pos < ctx->size; ++pos ) {
-        unsigned char share_byte = *share_ptr;
-        if( share_byte ){
+      for(pos = 0; pos < ctx->size; ++pos) {
+        uint8_t share_byte = *share_ptr;
+        if(share_byte) {
           share_byte = exps[ilog + logs[share_byte]];
         }
         *share_ptr++ = share_byte ^ *coefficient_ptr++;
@@ -260,57 +246,44 @@ gfshare_ctx_enc_getshares( const gfshare_ctx* ctx,
 /* ----------------------------------------------------[ Recombination ]---- */
 
 /* Inform a recombination context of a change in share indexes */
-void 
-gfshare_ctx_dec_newshares( gfshare_ctx* ctx,
-                           const unsigned char* sharenrs)
-{
-  memcpy( ctx->sharenrs, sharenrs, ctx->sharecount );
+void gfshare_ctx_dec_newshares( gfshare_ctx* ctx, const uint8_t* sharenrs) {
+  memcpy(ctx->sharenrs, sharenrs, ctx->sharecount);
 }
 
 /* Provide a share context with one of the shares.
  * The 'sharenr' is the index into the 'sharenrs' array
  */
-int
-gfshare_ctx_dec_giveshare( gfshare_ctx* ctx,
-                           unsigned char sharenr,
-                           const unsigned char* share )
-{
-  if( sharenr >= ctx->sharecount ) {
+int gfshare_ctx_dec_giveshare(gfshare_ctx* ctx, uint8_t sharenr, const uint8_t* share) {
+  if(sharenr >= ctx->sharecount) {
     return 1;
   }
-  memcpy( ctx->buffer + (sharenr * ctx->maxsize), share, ctx->size );
+  memcpy(ctx->buffer + (sharenr * ctx->maxsize), share, ctx->size);
   return 0;
 }
 
 /* Extract the secret by interpolation of the shares.
  * secretbuf must be allocated and at least 'size' bytes long
  */
-void
-gfshare_ctx_dec_extract( const gfshare_ctx* ctx,
-//		         const unsigned char* shares,
-                         unsigned char* secretbuf )
-{
-  unsigned int i, j, n, jn;
-  unsigned char *secret_ptr, *share_ptr;
-
-//  for(i = 0; i < ctx->sharecount; i++){
-//    memcpy(ctx->buffer + (i * ctx->maxsize), shares[i], ctx->size);
-//  }
+void gfshare_ctx_dec_extract(const gfshare_ctx* ctx, uint8_t* secretbuf) {
+  uint32_t i, j, n, jn;
+  uint8_t *secret_ptr, *share_ptr;
 
   memset(secretbuf, 0, ctx->size);
   
-  for( n = i = 0; n < ctx->threshold && i < ctx->sharecount; ++n, ++i ) {
+  for(n = i = 0; n < ctx->threshold && i < ctx->sharecount; ++n, ++i) {
     /* Compute L(i) as per Lagrange Interpolation */
     unsigned Li_top = 0, Li_bottom = 0;
     
-    if( ctx->sharenrs[i] == 0 ) {
+    if(ctx->sharenrs[i] == 0) {
       n--;
       continue; /* this share is not provided. */
     }
     
-    for( jn = j = 0; jn < ctx->threshold && j < ctx->sharecount; ++jn, ++j ) {
-      if( i == j ) continue;
-      if( ctx->sharenrs[j] == 0 ) {
+    for(jn = j = 0; jn < ctx->threshold && j < ctx->sharecount; ++jn, ++j) {
+      if(i == j) {
+	continue;
+      }
+      if(ctx->sharenrs[j] == 0) {
         jn--;
         continue; /* skip empty share */
       }
@@ -323,9 +296,10 @@ gfshare_ctx_dec_extract( const gfshare_ctx* ctx,
     /* Li_top is now log(L(i)) */
     
     secret_ptr = secretbuf; share_ptr = ctx->buffer + (ctx->maxsize * i);
-    for( j = 0; j < ctx->size; ++j ) {
-      if( *share_ptr )
+    for(j = 0; j < ctx->size; ++j) {
+      if(*share_ptr) {
         *secret_ptr ^= exps[Li_top + logs[*share_ptr]];
+      }
       share_ptr++; secret_ptr++;
     }
   }

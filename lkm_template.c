@@ -33,7 +33,7 @@ static int __init km_template_init(void){
     printk(KERN_INFO "Splitting randomly generated secret\n");
     time = ktime_get_ns();
     G = gfshare_ctx_init_enc(sharenrs, 3, 2, SECRET_SIZE); 
-    gfshare_ctx_enc_getshares(G, secret, 3, shards);
+    gfshare_ctx_enc_getshares(G, secret, shards);
     printk(KERN_INFO "time to split: %lld", ktime_get_ns() - time);
     //print_hex_dump(KERN_DEBUG, "split1", DUMP_PREFIX_OFFSET, 20, 1, (void*)shards[0], SECRET_SIZE, true);
     

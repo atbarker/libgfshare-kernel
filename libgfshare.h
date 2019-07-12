@@ -70,8 +70,8 @@ void gfshare_ctx_enc_setsecret(gfshare_ctx* /* ctx */,
  * 'share' must be preallocated and at least 'size' bytes long.
  * 'sharenr' is the index into the 'sharenrs' array of the share you want.
  */
-int gfshare_ctx_enc_getshare(const gfshare_ctx* /* ctx */,
-		             //const unsigned char*,
+int gfshare_ctx_enc_getshares(const gfshare_ctx* /* ctx */,
+		             const unsigned char* /* secret */,
                              unsigned char /* sharenr */,
                              unsigned char** /* share */);
 

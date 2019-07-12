@@ -33,7 +33,6 @@
 #include <linux/timekeeping.h>
 
 #define XMALLOC malloc
-#define XFREE kfree
 
 struct _gfshare_ctx {
   unsigned int sharecount;
@@ -132,7 +131,7 @@ _gfshare_ctx_init_core( const unsigned char *sharenrs,
   ctx->sharenrs = kmalloc( sharecount, GFP_KERNEL);
   
   if( ctx->sharenrs == NULL ) {
-    XFREE( ctx );
+    kfree( ctx );
     return NULL;
   }
   
@@ -140,8 +139,8 @@ _gfshare_ctx_init_core( const unsigned char *sharenrs,
   ctx->buffer = kmalloc( sharecount * maxsize, GFP_KERNEL);
   
   if( ctx->buffer == NULL ) {
-    XFREE( ctx->sharenrs );
-    XFREE( ctx );
+    kfree( ctx->sharenrs );
+    kfree( ctx );
     return NULL;
   }
   
@@ -196,14 +195,13 @@ gfshare_ctx_free( gfshare_ctx* ctx )
 {
   gfshare_fill_rand( ctx->buffer, ctx->sharecount * ctx->maxsize );
   gfshare_fill_rand( ctx->sharenrs, ctx->sharecount );
-  XFREE( ctx->sharenrs );
-  XFREE( ctx->buffer );
+  kfree( ctx->sharenrs );
+  kfree( ctx->buffer );
   gfshare_fill_rand( (unsigned char*)ctx, sizeof(struct _gfshare_ctx) );
-  XFREE( ctx );
+  kfree( ctx );
 }
 
 /* --------------------------------------------------------[ Splitting ]---- */
-
 /* Provide a secret to the encoder. (this re-scrambles the coefficients) */
 void 
 gfshare_ctx_enc_setsecret( gfshare_ctx* ctx,
@@ -220,31 +218,26 @@ gfshare_ctx_enc_setsecret( gfshare_ctx* ctx,
  * 'sharenr' is the index into the 'sharenrs' array of the share you want.
  */
 int
-gfshare_ctx_enc_getshare( const gfshare_ctx* ctx,
-//		          const unsigned char* secret,
+gfshare_ctx_enc_getshares( const gfshare_ctx* ctx,
+		          const unsigned char* secret,
                           unsigned char sharenr,
                           unsigned char** share)
 {
-  //unsigned int pos, coefficient;
-  //unsigned int ilog = logs[ctx->sharenrs[sharenr]];
-  //unsigned char *coefficient_ptr = ctx->buffer;
-  //unsigned char *share_ptr;
+  unsigned int pos, coefficient;
+  unsigned char *share_ptr;
+  uint64_t time;
   int i;
 
-  
-  //memcpy(ctx->buffer + ((ctx->threshold-1) * ctx->maxsize), secret, ctx->size);
-  //gfshare_fill_rand(ctx->buffer, (ctx->threshold-1) * ctx->maxsize);
+  time = ktime_get_ns();  
+  memcpy(ctx->buffer + ((ctx->threshold-1) * ctx->maxsize), secret, ctx->size);
+  gfshare_fill_rand(ctx->buffer, (ctx->threshold-1) * ctx->maxsize);
+  printk(KERN_INFO "time to generate random bytes: %lld", ktime_get_ns() - time);
 
-  if (sharenr >= ctx->sharecount) {
-    return 1;
-  }
-
-  for(i = 0; i < ctx->sharecount; i++){
-    unsigned int pos, coefficient;
+  for(i = 0; i < sharenr; i++){
     unsigned int ilog = logs[ctx->sharenrs[i]];
     unsigned char *coefficient_ptr = ctx->buffer;
-    unsigned char *share_ptr;
 
+    time = ktime_get_ns();
     memcpy(share[i], coefficient_ptr++, ctx->size);
     coefficient_ptr += ctx->size - 1;
 
@@ -259,6 +252,7 @@ gfshare_ctx_enc_getshare( const gfshare_ctx* ctx,
         *share_ptr++ = share_byte ^ *coefficient_ptr++;
       }
     }
+    printk(KERN_INFO "time to generate share: %lld", ktime_get_ns() - time);
   }
   return 0;
 }
@@ -293,10 +287,15 @@ gfshare_ctx_dec_giveshare( gfshare_ctx* ctx,
  */
 void
 gfshare_ctx_dec_extract( const gfshare_ctx* ctx,
+//		         const unsigned char* shares,
                          unsigned char* secretbuf )
 {
   unsigned int i, j, n, jn;
   unsigned char *secret_ptr, *share_ptr;
+
+//  for(i = 0; i < ctx->sharecount; i++){
+//    memcpy(ctx->buffer + (i * ctx->maxsize), shares[i], ctx->size);
+//  }
 
   memset(secretbuf, 0, ctx->size);
   

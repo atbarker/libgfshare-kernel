@@ -13,7 +13,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("AUSTEN BARKER");
 
 static int __init km_template_init(void){
-    uint8_t* secret = kmalloc(SECRET_SIZE, GFP_KERNEL);
+   /* uint8_t* secret = kmalloc(SECRET_SIZE, GFP_KERNEL);
     uint8_t* recombine = kmalloc(SECRET_SIZE, GFP_KERNEL);
     uint8_t** shards = kmalloc(sizeof(uint8_t*) * 3, GFP_KERNEL);
     //uint8_t* shard1 = kmalloc(SECRET_SIZE, GFP_KERNEL);
@@ -67,7 +67,7 @@ exit:
     kfree(shards);
     //kfree(shard1);
     //kfree(shard2);
-    //kfree(shard3);
+    //kfree(shard3);*/
     return 0;
 }
 

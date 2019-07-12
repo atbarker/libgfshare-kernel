@@ -17,7 +17,6 @@ maketable_build:
 
 test:
 	sudo insmod gfsharetest.ko
-	sleep 3
 	sudo rmmod gfsharetest.ko
 
 clean:

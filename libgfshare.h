@@ -26,10 +26,11 @@
 #ifndef LIBGFSHARE_H
 #define LIBGFSHARE_H
 
+#include <linux/types.h>
 
 typedef struct _gfshare_ctx gfshare_ctx;
 
-typedef void (*gfshare_rand_func_t)(unsigned char*, unsigned int);
+typedef void (*gfshare_rand_func_t)(uint8_t*, size_t);
 
 /* This will, by default, use random(). It's not very good so you should
  * replace it (perhaps with a function which reads from /dev/urandom).
@@ -71,7 +72,7 @@ void gfshare_ctx_enc_setsecret(gfshare_ctx* /* ctx */,
  */
 int gfshare_ctx_enc_getshare(const gfshare_ctx* /* ctx */,
                              unsigned char /* sharenr */,
-                             unsigned char* /* share */);
+                             unsigned char** /* share */);
 
 /* ----------------------------------------------------[ Recombination ]---- */
 

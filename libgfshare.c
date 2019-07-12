@@ -91,22 +91,20 @@ void gf_random_fill (void *buf, uint64_t len) {
 
 */
 
-static void
-_gfshare_fill_rand_using_random( unsigned char* buffer,
-                                 unsigned int count )
+static void _gfshare_fill_rand_using_random_bytes(uint8_t* buffer, size_t count )
 {
-  unsigned int i;
-  int32_t rand;
-  for( i = 0; i < count; ++i ){
-    get_random_bytes_arch(&rand, sizeof(rand));
-    buffer[i] = (rand & 0xff00) >> 8; /* apparently the bottom 8 aren't
-                                           * very random but the middles ones
-                                          * are
-                                           */
-  }
+    get_random_bytes(buffer, count);
 }
 
-gfshare_rand_func_t gfshare_fill_rand = _gfshare_fill_rand_using_random;
+static void _gfshare_fill_rand_using_random_int(uint8_t* buffer, size_t count){
+    int i;
+    uint32_t* buf = (uint32_t*)buffer;
+    for(i = 0; i < count; i += sizeof(uint32_t)){
+        buf[i] = get_random_int();
+    }
+}
+
+gfshare_rand_func_t gfshare_fill_rand = _gfshare_fill_rand_using_random_bytes;
 
 /* ------------------------------------------------------[ Preparation ]---- */
 
@@ -224,27 +222,37 @@ gfshare_ctx_enc_setsecret( gfshare_ctx* ctx,
 int
 gfshare_ctx_enc_getshare( const gfshare_ctx* ctx,
                           unsigned char sharenr,
-                          unsigned char* share)
+                          unsigned char** share)
 {
-  unsigned int pos, coefficient;
-  unsigned int ilog = logs[ctx->sharenrs[sharenr]];
-  unsigned char *coefficient_ptr = ctx->buffer;
-  unsigned char *share_ptr;
+  //unsigned int pos, coefficient;
+  //unsigned int ilog = logs[ctx->sharenrs[sharenr]];
+  //unsigned char *coefficient_ptr = ctx->buffer;
+  //unsigned char *share_ptr;
+  int i;
 
   if (sharenr >= ctx->sharecount) {
     return 1;
   }
 
-  for( pos = 0; pos < ctx->size; ++pos )
-    share[pos] = *(coefficient_ptr++);
-  for( coefficient = 1; coefficient < ctx->threshold; ++coefficient ) {
-    share_ptr = share;
-    coefficient_ptr = ctx->buffer + coefficient * ctx->maxsize;
-    for( pos = 0; pos < ctx->size; ++pos ) {
-      unsigned char share_byte = *share_ptr;
-      if( share_byte )
-        share_byte = exps[ilog + logs[share_byte]];
-      *share_ptr++ = share_byte ^ *coefficient_ptr++;
+  for(i = 0; i < sharenr; i++){
+    unsigned int pos, coefficient;
+    unsigned int ilog = logs[ctx->sharenrs[i]];
+    unsigned char *coefficient_ptr = ctx->buffer;
+    unsigned char *share_ptr;
+
+    memcpy(share[i], coefficient_ptr++, ctx->size);
+    coefficient_ptr += ctx->size - 1;
+
+    for( coefficient = 1; coefficient < ctx->threshold; ++coefficient ) {
+      share_ptr = share[i];
+      coefficient_ptr = ctx->buffer + coefficient * ctx->maxsize;
+      for( pos = 0; pos < ctx->size; ++pos ) {
+        unsigned char share_byte = *share_ptr;
+        if( share_byte ){
+          share_byte = exps[ilog + logs[share_byte]];
+        }
+        *share_ptr++ = share_byte ^ *coefficient_ptr++;
+      }
     }
   }
   return 0;

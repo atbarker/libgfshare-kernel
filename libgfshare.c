@@ -45,13 +45,12 @@ struct _gfshare_ctx {
 };
 
 //TODO see if there are any faster methods to get good random numbers, RDRAND if x86?
-
-static void _gfshare_fill_rand_using_random_bytes(uint8_t* buffer, size_t count )
-{
+static void _gfshare_fill_rand_using_random_bytes(uint8_t* buffer, size_t count){
     get_random_bytes(buffer, count);
 }
 
 gfshare_rand_func_t gfshare_fill_rand = _gfshare_fill_rand_using_random_bytes;
+
 
 /* ------------------------------------------------------[ Preparation ]---- */
 

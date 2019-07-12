@@ -28,8 +28,13 @@ static int __init km_template_init(void){
 
     printk(KERN_INFO "Inserting kernel module\n");
     for(i = 0; i < 3; i++){
-        shards[i] = kmalloc(SECRET_SIZE, GFP_KERNEL);
+	
+        //shards[i] = kmalloc(SECRET_SIZE, GFP_KERNEL);
+	//memset(shards[i], 0, SECRET_SIZE);
     }
+    shards[0] = shard1;
+    shards[1] = shard2;
+    shards[2] = shard3;
     
     //populate everything with random bytes
     get_random_bytes(secret, SECRET_SIZE);

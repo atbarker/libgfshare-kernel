@@ -40,10 +40,11 @@ static int __init km_template_init(void){
     //recombine the secret
     G_dec = gfshare_ctx_init_dec(sharenrs, 3, 2, SECRET_SIZE);
     time = ktime_get_ns();
-    gfshare_ctx_dec_giveshare(G_dec, 0, shards[0]);
-    gfshare_ctx_dec_giveshare(G_dec, 1, shards[1]);
-    gfshare_ctx_dec_giveshare(G_dec, 2, shards[2]);
-    gfshare_ctx_dec_extract(G_dec, recombine);
+    //gfshare_ctx_dec_giveshare(G_dec, 0, shards[0]);
+    //gfshare_ctx_dec_giveshare(G_dec, 1, shards[1]);
+    //gfshare_ctx_dec_giveshare(G_dec, 2, shards[2]);
+    //gfshare_ctx_dec_extract(G_dec, recombine);
+    gfshare_ctx_dec_decode(G_dec, sharenrs, shards, recombine);
     printk(KERN_INFO "time to reconstruct: %lld", ktime_get_ns() - time);
     
     //verify the recombination succeeded
